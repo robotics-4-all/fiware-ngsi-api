@@ -1,5 +1,6 @@
 from fiware_ngsi_api.configuration import NgsiConfiguration
 from fiware_ngsi_api.api_client import NgsiApiClient
+from fiware_ngsi_api.api.device_groups import NgsiGroups
 from enum import Enum
 
 import json
@@ -7,7 +8,7 @@ import time
 
 
 class DeviceType(str, Enum):
-    BATTERY = 'Battery'
+    ROBOT = 'Robot'
 
 
 class DeviceCommand(object):
@@ -21,7 +22,6 @@ class DeviceCommand(object):
 
 class DeviceBase(object):
     RESOURCE_PATH_CREATE = ":4041/iot/devices"
-    RESOURCE_PATH_COMMAND = ":4041/v2/op/update"
 
     HTTP_INFO = [
         'async_req',
@@ -34,8 +34,7 @@ class DeviceBase(object):
         self.id = id
         self.type = type
 
-        self.commands = []
-        self.references = []
+        self.attributes = []
 
         if api_client is None:
             api_client = NgsiApiClient()
@@ -65,9 +64,6 @@ class DeviceBase(object):
     def api_client(self, new_api_client):
         self._api_client = new_api_client
 
-    def add_command(self, command):
-        self.commands.append(command.to_json())
-
     def _create(self, service="openiot", service_path="/"):
         header_params = {
             "Fiware-Service": service,
@@ -80,21 +76,43 @@ class DeviceBase(object):
 
         query_params = {}
 
-        # print(f"{self.type}{self.id}")
-        # print(f"urn:ngsi-ld:{self.type}:{self.id}")
-        # print(self.type)
-
         try:
+            self.header = {
+                "device_id": f"{self.type}{self.id}",
+                "entity_name": f"urn:ngsi-ld:{self.type}:{self.id}",
+                "entity_type": self.type,
+                "transport": "MQTT",
+            }
+
+            self.mapping = {
+                "attributes": [
+                    {
+                        "object_id": attr,
+                        "name": attr,
+                        "type": self.attributes[attr]["type"]
+                    }
+                    for attr in self.attributes.keys()
+                ]
+            }
+
+            self.static_attributes = {
+                "static_attributes": [{
+                    "name": "refStore",
+                    "type": "Relationship",
+                    "value": "urn:ngsi-ld:Store:003"}
+                ]
+            }
+
+            self.device = {
+                **self.header,
+                **self.attributes,
+                **self.mapping,
+                **self.static_attributes
+            }
+
             body_params = json.dumps({
                 "devices": [
-                    {
-                        "device_id": f"{self.type}{self.id}",
-                        "entity_name": f"urn:ngsi-ld:{self.type}:{self.id}",
-                        "entity_type": self.type,
-                        "transport": "MQTT",
-                        "commands": self.commands,
-                        "static_attributes": self.references
-                    }
+                    self.device
                 ]
             })
         except Exception as e:
@@ -113,75 +131,63 @@ class DeviceBase(object):
             _request_timeout=None
         )
 
-    def _command(self, command, data, service="openiot", service_path="/"):
-        header_params = {
-            "Fiware-Service": service,
-            "Fiware-ServicePath": service_path,
-            "Content-Type": "application/json",
-            "Cache-Control": "no-cache"
+
+class RobotDevice(DeviceBase):
+    TYPE = DeviceType.ROBOT
+
+    def __init__(self, id, api_client, ngsi_group):
+        super(RobotDevice, self).__init__(id=id,
+                                          type=ngsi_group.type,
+                                          api_client=api_client)
+
+        self.attributes = {
+            "pose": {
+                "type": "coordinates",
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "path": {
+                "type": "list",
+                "points": []
+            },
+            "target": {
+                "type": "point",
+                "x": 0.0,
+                "y": 0.0
+            },
+            "targetProduct": {
+                "type": "productID",
+                "val": "Product-001"
+            },
+            "velocities": {
+                "type": "vector2d",
+                "linear": 0.0,
+                "angular": 0.0
+            },
+            "state": {
+                "type": "enum",
+                "val": "IDLE"
+            },
+            "power": {
+                "type": "float",
+                "percentage": 1.0
+            },
+            "hearbeat": {
+                "type": "boolean",
+                "val": True,
+            },
+            "logs": {
+                "type": "string",
+                "msg": "I am a default log!"
+            },
+            "image": {
+                "type": "string",
+                "val": ""
+            }
         }
 
-        resource_path = DeviceBase.RESOURCE_PATH_COMMAND
-
-        query_params = {}
-
-        try:
-            body_params = json.dumps({
-                "actionType": "update",
-                "entities": [
-                    {
-                        "type": self.type,
-                        "id": f"urn:ngsi-ld:{self.type}:{self.id}",
-                        command: {
-                            "type": "command",
-                            "value": data
-                        }
-                    }
-                ]
-            })
-        except Exception as e:
-            raise ValueError(
-                "Parameter `body` is not a valid json when calling `create_device`")
-
-        print(body_params)
-
-        return self.api_client.call_api(
-            method="POST",
-            resource_path=resource_path,
-            query_params=query_params,
-            header_params=header_params,
-            body=body_params,
-            async_req=None,
-            _return_http_data_only=None,
-            _preload_content=None,
-            _request_timeout=None
+        self._create(
+            service=ngsi_group.service,
+            service_path=ngsi_group.service_path
         )
-
-
-class BatteryDevice(DeviceBase):
-    TYPE = DeviceType.BATTERY
-
-    def __init__(self, id, api_client):
-        super(BatteryDevice, self).__init__(id=id,
-                                            type=BatteryDevice.TYPE,
-                                            api_client=api_client)
-
-        self.add_command(DeviceCommand("UpdateVoltage"))
-
-        r = self._create()
-        print(r.data)
-
-    def updateVoltage(self, voltage):
-        r = self._command("UpdateVoltage", voltage)
-        print(r.data)
-
-
-if __name__ == "__main__":
-    config = NgsiConfiguration("settings.conf")
-    client = NgsiApiClient(configuration=config)
-
-    bat_device = BatteryDevice("001", client)
-
-    while True:
-        bat_device.updateVoltage(voltage=5)
-        time.sleep(0.2)

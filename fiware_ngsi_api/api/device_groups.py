@@ -13,15 +13,56 @@ class NgsiGroups:
         'request_timeout'
     ]
 
-    def __init__(self, api_client):
+    def __init__(self, api_client, type, api_key, service="openiot", service_path="/"):
         if api_client is None:
             api_client = NgsiApiClient()
         self._api_client = api_client
 
-    def create(self, api_key, sensor_type, service="openiot", service_path="/"):
+        self.type = type
+        self.api_key = api_key
+        self.service = service
+        self.service_path = service_path
+
+    @property
+    def type(self):
+        return self._type
+
+    @type.setter
+    def type(self, new_type):
+        self._type = new_type
+
+    @property
+    def api_key(self):
+        return self._api_key
+
+    @api_key.setter
+    def api_key(self, new_api_key):
+        self._api_key = new_api_key
+
+    @property
+    def service(self):
+        return self._service
+
+    @service.setter
+    def service(self, new_service):
+        self._service = new_service
+
+    @service.setter
+    def service(self, new_service):
+        self._service = new_service
+
+    @property
+    def service_path(self):
+        return self._service_path
+
+    @service_path.setter
+    def service_path(self, new_service_path):
+        self._service_path = new_service_path
+
+    def create(self):
         header_params = {
-            "Fiware-Service": service,
-            "Fiware-ServicePath": service_path,
+            "Fiware-Service": self.service,
+            "Fiware-ServicePath": self.service_path,
             "Cache-Control": "no-cache",
             "Content-Type": "application/json"
         }
@@ -30,8 +71,8 @@ class NgsiGroups:
             body_params = json.dumps({
                 "services": [
                     {
-                        "apikey": api_key,
-                        "type": sensor_type,
+                        "apikey": self.api_key,
+                        "type": self.type,
                         "resource": "/iot/json",
                     }
                 ]
@@ -56,7 +97,13 @@ class NgsiGroups:
             _request_timeout=None
         )
 
-    def list(self, service="openiot", service_path="/"):
+    def list(self, service=None, service_path=None):
+        if service is None:
+            service = self.service
+
+        if service_path is None:
+            service_path = self.service_path
+
         header_params = {
             "Content-Type": "text/plain",
             "Fiware-Service": service,
@@ -67,8 +114,7 @@ class NgsiGroups:
 
         resource_path = self.RESOURCE_PATH
 
-        query_params = {
-        }
+        query_params = {}
 
         return self._api_client.call_api(
             method="GET",
@@ -82,11 +128,11 @@ class NgsiGroups:
             _request_timeout=None
         )
 
-    def update(self, api_key, body, service="openiot", service_path="/"):
+    def update(self, body):
         header_params = {
             "Content-Type": "application/json",
-            "Fiware-Service": service,
-            "Fiware-ServicePath": service_path,
+            "Fiware-Service": self.service,
+            "Fiware-ServicePath": self.service_path,
         }
 
         try:
@@ -99,7 +145,7 @@ class NgsiGroups:
 
         query_params = {
             "resource": "/iot/json",
-            "apikey": api_key
+            "apikey": self.api_key
         }
 
         return self._api_client.call_api(
@@ -114,10 +160,10 @@ class NgsiGroups:
             _request_timeout=None
         )
 
-    def delete(self, api_key, service="openiot", service_path="/"):
+    def delete(self):
         header_params = {
-            "Fiware-Service": service,
-            "Fiware-ServicePath": service_path,
+            "Fiware-Service": self.service,
+            "Fiware-ServicePath": self.service_path,
         }
 
         body_params = None
@@ -126,7 +172,7 @@ class NgsiGroups:
 
         query_params = {
             "resource": "/iot/json",
-            "apikey": api_key
+            "apikey": self.api_key
         }
 
         return self._api_client.call_api(

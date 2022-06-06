@@ -29,7 +29,7 @@ class NgsiEntities:
         ],
         "Create": [
             'body',
-            'content-type',
+            'content_type',
             'options'
         ],
         "Remove": [
@@ -53,6 +53,8 @@ class NgsiEntities:
     }
 
     HTTP_INFO = [
+        'fiware_service',
+        'fiware_service_path',
         'async_req',
         '_return_http_data_only',
         '_preload_content',
@@ -69,10 +71,11 @@ class NgsiEntities:
 
     def create_entity(self, body, **kwargs):
         params = locals()
+        input_params = {}
 
         for key, val in six.iteritems(params['kwargs']):
             if key in NgsiEntities.ALL_PARAMS['Create']:
-                params[key] = val
+                input_params[key] = val
             else:
                 raise TypeError(
                     f"Got an unexpected keyword argument {key} to method create_entitiy"
@@ -85,15 +88,21 @@ class NgsiEntities:
 
         # parse query params
         query_params = {}
-        if 'options' in params:
-            query_params['options'] = params['options']
+        if 'options' in input_params:
+            query_params['options'] = input_params['options']
 
         # parse header params
         header_params = {}
-        if 'content-type' not in params or params['content-type'] is None:
+        if 'content_type' not in input_params or input_params['content_type'] is None:
             header_params['Content-Type'] = "application/json"
         else:
-            header_params['Content-Type'] = params['content_type']
+            header_params['Content-Type'] = input_params['content_type']
+
+        if 'fiware_service' in input_params:
+            header_params['Fiware-Service'] = input_params['fiware_service']
+
+        if 'fiware_service_path' in input_params:
+            header_params['Fiware-ServicePath'] = input_params['fiware_service_path']
 
         # parse body param
         body_params = None
@@ -135,6 +144,12 @@ class NgsiEntities:
         # parse header param
         header_params = {}
 
+        if 'fiware_service' in query_params:
+            header_params['Fiware-Service'] = query_params['fiware_service']
+
+        if 'fiware_service_path' in query_params:
+            header_params['Fiware-ServicePath'] = query_params['fiware_service_path']
+
         return self._api_client.call_api(
             method="GET",
             resource_path=resource_path,
@@ -169,6 +184,12 @@ class NgsiEntities:
 
         # parse header param
         header_params = {}
+
+        if 'fiware_service' in query_params:
+            header_params['Fiware-Service'] = query_params['fiware_service']
+
+        if 'fiware_service_path' in query_params:
+            header_params['Fiware-ServicePath'] = query_params['fiware_service_path']
 
         return self._api_client.call_api(
             method="GET",
@@ -205,6 +226,12 @@ class NgsiEntities:
         # parse header param
         header_params = {}
 
+        if 'fiware_service' in query_params:
+            header_params['Fiware-Service'] = query_params['fiware_service']
+
+        if 'fiware_service_path' in query_params:
+            header_params['Fiware-ServicePath'] = query_params['fiware_service_path']
+
         return self._api_client.call_api(
             method="DELETE",
             resource_path=resource_path,
@@ -237,6 +264,12 @@ class NgsiEntities:
 
         # parse header param
         header_params = {}
+
+        if 'fiware_service' in query_params:
+            header_params['Fiware-Service'] = query_params['fiware_service']
+
+        if 'fiware_service_path' in query_params:
+            header_params['Fiware-ServicePath'] = query_params['fiware_service_path']
 
         return self._api_client.call_api(
             method="GET",
@@ -278,6 +311,12 @@ class NgsiEntities:
 
         # parse header param
         header_params = {"Content-Type": "application/json"}
+
+        if 'fiware_service' in query_params:
+            header_params['Fiware-Service'] = query_params['fiware_service']
+
+        if 'fiware_service_path' in query_params:
+            header_params['Fiware-ServicePath'] = query_params['fiware_service_path']
 
         return self._api_client.call_api(
             method="PUT",
@@ -321,6 +360,12 @@ class NgsiEntities:
         # parse header param
         header_params = {"Content-Type": "application/json"}
 
+        if 'fiware_service' in query_params:
+            header_params['Fiware-Service'] = query_params['fiware_service']
+
+        if 'fiware_service_path' in query_params:
+            header_params['Fiware-ServicePath'] = query_params['fiware_service_path']
+
         return self._api_client.call_api(
             method="PATCH",
             resource_path=resource_path,
@@ -362,6 +407,12 @@ class NgsiEntities:
 
         # parse header param
         header_params = {"Content-Type": "application/json"}
+
+        if 'fiware_service' in query_params:
+            header_params['Fiware-Service'] = query_params['fiware_service']
+
+        if 'fiware_service_path' in query_params:
+            header_params['Fiware-ServicePath'] = query_params['fiware_service_path']
 
         return self._api_client.call_api(
             method="POST",
