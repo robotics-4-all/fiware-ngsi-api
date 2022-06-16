@@ -1,0 +1,47 @@
+# Robot Entity
+---
+Robots:
+  id: "001"
+  name: "A happy robot!"
+  type: "turtlebot"
+  attributes:
+    pose:
+      type: "pose"
+      value:
+        x: 0
+        y: 0
+        th: 0
+    path:
+      type: "list"
+      value:
+        points: []
+    target:
+      type: "point"
+      value:
+        x: 0
+        y: 0
+    velocities:
+      type: "vector2D"
+      value:
+        linear: 0.0
+        angular: 0.0
+    state:
+      type: "enum"
+      value:
+        val: "IDLE"
+    power:
+      type: "float"
+      value:
+        percentage: 1.0
+    heartbeat:
+      type: "boolean"
+      value:
+        val: True
+    logs:
+      type: "string"
+      value:
+        val: "I am a quite log!"
+    image:
+      type: "string"
+      value:
+        val: "I am a base64 encoded image string"

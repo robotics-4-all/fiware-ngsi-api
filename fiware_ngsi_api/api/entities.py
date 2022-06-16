@@ -1,9 +1,7 @@
-import json
-import six
-
 from fiware_ngsi_api.api_client import NgsiApiClient
 
-# from six.moves.urllib.parse import urlencode
+import json
+import six
 
 
 class NgsiEntities:
@@ -100,7 +98,6 @@ class NgsiEntities:
 
         if 'fiware_service' in input_params:
             header_params['Fiware-Service'] = input_params['fiware_service']
-
         if 'fiware_service_path' in input_params:
             header_params['Fiware-ServicePath'] = input_params['fiware_service_path']
 
@@ -143,10 +140,8 @@ class NgsiEntities:
 
         # parse header param
         header_params = {}
-
         if 'fiware_service' in query_params:
             header_params['Fiware-Service'] = query_params['fiware_service']
-
         if 'fiware_service_path' in query_params:
             header_params['Fiware-ServicePath'] = query_params['fiware_service_path']
 
@@ -184,10 +179,8 @@ class NgsiEntities:
 
         # parse header param
         header_params = {}
-
         if 'fiware_service' in query_params:
             header_params['Fiware-Service'] = query_params['fiware_service']
-
         if 'fiware_service_path' in query_params:
             header_params['Fiware-ServicePath'] = query_params['fiware_service_path']
 
