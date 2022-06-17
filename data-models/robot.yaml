@@ -1,9 +1,8 @@
 # Robot Entity
 ---
-Robots:
+Robot:
   id: "001"
   name: "A happy robot!"
-  type: "turtlebot"
   attributes:
     pose:
       type: "pose"
@@ -20,6 +19,10 @@ Robots:
       value:
         x: 0
         y: 0
+    targetProduct:
+      type: "productID"
+      value:
+        val: "Product-x"
     velocities:
       type: "vector2D"
       value:

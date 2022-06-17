@@ -1,43 +1,320 @@
+from fiware_ngsi_api.api.entities import NgsiEntities
+from fiware_ngsi_api.api.services import NgsiService
 from fiware_ngsi_api.api.devices import NgsiDevice
-from fiware_ngsi_api.api.services import NgsiServices
-from fiware_ngsi_api.configuration import NgsiConfiguration
-from fiware_ngsi_api.api_client import NgsiApiClient
-from yaml.loader import SafeLoader
+
+import json
 import yaml
 import os
 
 
-class RobotAPI:
+class NgsiRobotAPIError(Exception):
+    def __init__(self, id, message="Error initializing robot entity"):
+        self.id = id
+        self.message = message
+
+        super().__init__(self.message)
+
+    def __str__(self):
+        return f'{self.id} -> {self.message}'
+
+
+class NgsiRobotAPI(NgsiEntities):
     ENTITY_TYPE = 'Robot'
 
-    def __init__(self, api_client, file_path, service, service_path):
-        self._service = service
-        self._service_paht = service_path
+    def __init__(self, api_client, file_path, service="openiot", service_path="/"):
+        self.api_client = api_client
+        self.service = service
+        self.service_path = service_path
 
-        if not os.path.exists(file_path):
-            print('Invalid Path!')
+        self.type = NgsiRobotAPI.ENTITY_TYPE
 
-        with open(file_path) as f:
-            data = yaml.load(f, Loader=SafeLoader)
-            print(data)
+        super(NgsiRobotAPI, self).__init__(api_client)
 
-        self.id = data['Robots']['id']
+        self._load_settings(file_path)
 
-        print(self.id)
+        self._service_api = NgsiService(api_client)
+        self._device_api = NgsiDevice(api_client)
 
-        self._service = NgsiServices(
-            api_client, type=RobotAPI.ENTITY_TYPE, api_key=24546)
+        if not self._service_exists():
+            raise NgsiRobotAPIError(
+                id=self.robot_id,
+                message="Error: Robot type service is not found!")
 
-        print(self._service.list())
+        if not self._device_exists():
+            try:
+                response = self._device_api.create(
+                    id=self._robot['id'],
+                    type=RobotAPI.ENTITY_TYPE,
+                    attrs=self._robot['attributes']
+                )
 
+                if response.status != 201:
+                    raise Exception(
+                        f"Error creating robot entity {self._robot['id']}: {response.data}")
 
-if __name__ == "__main__":
-    API_KEY = "1234"
-    SENSOR_TYPE = "Robot"
-    ROBOT_ID = "001"
+                response = self.replace_all_entity_attributes(
+                    entity_id=f"urn:ngsi-ld:{self.type}:{self.robot_id}",
+                    body=self._robot['attributes']
+                )
 
-    if __name__ == "__main__":
-        config = NgsiConfiguration("../../conf/settings.conf")
-        client = NgsiApiClient(configuration=config)
+                if response.status != 204:
+                    raise Exception(
+                        f"Error initializing robot entity {self._robot['id']}: {response.data}")
+            except Exception as e:
+                raise NgsiRobotAPIError(
+                    id=self.robot_id,
+                    message=e)
 
-        robot = RobotAPI(client, '../../data-models/robot.yaml', 1, 2)
+    @property
+    def robot_id(self):
+        return self._robot_id
+
+    @robot_id.setter
+    def robot_id(self, new_robot_id):
+        self._robot_id = new_robot_id
+
+    @property
+    def apikey(self):
+        return self._apikey
+
+    @apikey.setter
+    def apikey(self, new_apikey):
+        self._apikey = new_apikey
+
+    @property
+    def api_client(self):
+        return self._api_client
+
+    @api_client.setter
+    def api_client(self, new_api_client):
+        self._api_client = new_api_client
+
+    @property
+    def service(self):
+        return self._service
+
+    @service.setter
+    def service(self, new_service):
+        self._service = new_service
+
+    @property
+    def service_path(self):
+        return self._service_path
+
+    @service_path.setter
+    def service_path(self, new_service_path):
+        self._service_path = new_service_path
+
+    @property
+    def pose(self):
+        return self._get_robot_attr("pose")
+
+    @pose.setter
+    def pose(self, new_pose):
+        self._set_robot_attr({
+            "pose": {
+                "type": "pose",
+                "value": new_pose
+            }
+        })
+
+    @property
+    def target(self):
+        return self._get_robot_attr("target")
+
+    @target.setter
+    def target(self, new_target):
+        self._set_robot_attr({
+            "target": {
+                "type": "point",
+                "value": new_target
+            }
+        })
+
+    @property
+    def target_product(self):
+        return self._get_robot_attr("targetProduct")
+
+    @target_product.setter
+    def target_product(self, new_target_product):
+        self._set_robot_attr({
+            "targetProduct": {
+                "type": "productID",
+                "value": new_target_product
+            }
+        })
+
+    @property
+    def velocities(self):
+        return self._get_robot_attr("velocities")
+
+    @velocities.setter
+    def velocities(self, new_velocities):
+        self._set_robot_attr({
+            "velocities": {
+                "type": "vector2d",
+                "value": new_velocities
+            }
+        })
+
+    @property
+    def path(self):
+        return self._get_robot_attr("path")
+
+    @path.setter
+    def path(self, new_path):
+        self._set_robot_attr({
+            "path": {
+                "type": "list",
+                "value": new_path
+            }
+        })
+
+    @property
+    def state(self):
+        return self._get_robot_attr("state")
+
+    @state.setter
+    def state(self, new_state):
+        self._set_robot_attr({
+            "state": {
+                "type": "enum",
+                "value": new_state
+            }
+        })
+
+    @property
+    def power(self):
+        return self._get_robot_attr("power")
+
+    @power.setter
+    def power(self, new_power):
+        self._set_robot_attr({
+            "power": {
+                "type": "float",
+                "value": new_power
+            }
+        })
+
+    @property
+    def heartbeat(self):
+        return self._get_robot_attr("heartbeat")
+
+    @heartbeat.setter
+    def heartbeat(self, new_heartbeat):
+        self._set_robot_attr({
+            "heartbeat": {
+                "type": "boolean",
+                "value": new_heartbeat
+            }
+        })
+
+    @property
+    def logs(self):
+        return self._get_robot_attr("logs")
+
+    @logs.setter
+    def logs(self, new_logs):
+        self._set_robot_attr({
+            "logs": {
+                "type": "string",
+                "value": new_logs
+            }
+        })
+
+    @property
+    def image(self):
+        return self._get_robot_attr("image")
+
+    @image.setter
+    def image(self, new_image):
+        self._set_robot_attr({
+            "image": {
+                "type": "string",
+                "value": new_image
+            }
+        })
+
+    def _get_robot_attr(self, attr):
+        try:
+            response = self.retrieve_entity_attributes(
+                entity_id=f"urn:ngsi-ld:{self.type}:{self.robot_id}",
+                type=self.type,
+                attrs=attr,
+                options="keyValues"
+            )
+
+            if response.status == 200:
+                return json.loads(response.data)
+        except Exception as e:
+            print(f"Error occured when trying to get attr: {attr}")
+
+        return {}
+
+    def _set_robot_attr(self, value):
+        try:
+            response = self.update_existing_entity_attributes(
+                entity_id=f"urn:ngsi-ld:{self.type}:{self.robot_id}",
+                type=self.type,
+                body=value
+            )
+
+            if response.status == 204:
+                print("Succesfull!")
+        except Exception as e:
+            print(f"Error occured when trying to get attr: {value.keys()}")
+
+    def _load_settings(self, file_path):
+        if os.path.exists(file_path):
+            with open(file_path, "r") as stream:
+                try:
+                    self._robot = yaml.safe_load(stream)['Robot']
+
+                    self.robot_id = self._robot['id']
+                except yaml.YAMLError as e:
+                    NgsiRobotAPIError(
+                        id=self.robot_id,
+                        error="Caught error when parsing yaml file!")
+                except KeyError as e:
+                    NgsiRobotAPIError(
+                        id=self.robot_id,
+                        error="Caught Key value error!")
+        else:
+            raise IOError("Invalid settings path!")
+
+    def _service_exists(self):
+        try:
+            response = self._service_api.list(
+                service=self._service,
+                service_path=self._service_path
+            )
+
+            if response.status != 200:
+                return False
+
+            response = json.loads(response.data)
+
+            for service in response['services']:
+                if service['entity_type'] == self.type:
+                    self.apikey = service['apikey']
+                    return True
+        except Exception as e:
+            print(f"Error occured when searching {self.type} service: {e}.")
+            return False
+
+    def _device_exists(self):
+        try:
+            response = self._device_api.list(
+                id=self.robot_id,
+                type=self.type,
+                service=self._service,
+                service_path=self._service_path
+            )
+
+            if response.status != 200:
+                return False
+
+            return True
+        except Exception as e:
+            print(f"Error occured when searching {self.type} device: {e}.")
+            return False

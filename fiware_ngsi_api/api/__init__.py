@@ -4,5 +4,5 @@
 from __future__ import absolute_import
 
 from .entities import NgsiEntities
-from .services import NgsiServices
+from .services import NgsiService
 from .devices import NgsiDevice

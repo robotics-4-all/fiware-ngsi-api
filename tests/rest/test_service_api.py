@@ -1,4 +1,4 @@
-from fiware_ngsi_api.api.services import NgsiServices
+from fiware_ngsi_api.api.services import NgsiService
 from fiware_ngsi_api.api_client import NgsiApiClient
 from fiware_ngsi_api.configuration import NgsiConfiguration
 
@@ -8,18 +8,18 @@ API_KEY = "1234abcd"
 
 
 if __name__ == "__main__":
-    config = NgsiConfiguration(file_path="../conf/settings.conf")
+    config = NgsiConfiguration(file_path="../../conf/settings.conf")
     api_client = NgsiApiClient(configuration=config)
 
-    service_api = NgsiServices(api_client=api_client)
+    service_api = NgsiService(api_client=api_client)
 
     # create a new service
-    response = service_api.create(api_key=API_KEY, type="test")
+    response = service_api.create(api_key=API_KEY, type="Robot")
 
     # update the new service
     body = {
         "cbroker": "http://155.207.33.189:1026",
-        "entity_type": "tested"
+        "entity_type": "Robot"
     }
 
     response = service_api.update(api_key=API_KEY, body=body)
@@ -30,4 +30,4 @@ if __name__ == "__main__":
     print("Available services: ", available_services)
 
     # delete the newly created service
-    response = service_api.delete(api_key=API_KEY)
+    # response = service_api.delete(api_key=API_KEY)

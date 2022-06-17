@@ -1,7 +1,7 @@
 from fiware_ngsi_api.api_client import NgsiApiClient
 from fiware_ngsi_api.configuration import NgsiConfiguration
 
-from fiware_ngsi_api.api.services import NgsiServices
+from fiware_ngsi_api.api.services import NgsiService
 from fiware_ngsi_api.api.devices import NgsiDevice
 
 import json
@@ -10,10 +10,10 @@ API_KEY = "1234abcd"
 
 
 if __name__ == "__main__":
-    config = NgsiConfiguration(file_path="../conf/settings.conf")
+    config = NgsiConfiguration(file_path="../../conf/settings.conf")
     api_client = NgsiApiClient(configuration=config)
 
-    service_api = NgsiServices(api_client=api_client)
+    service_api = NgsiService(api_client=api_client)
     device_api = NgsiDevice(api_client=api_client)
 
     # create a new service

@@ -3,7 +3,7 @@ from fiware_ngsi_api.api_client import NgsiApiClient
 import json
 
 
-class NgsiServices:
+class NgsiService:
     RESOURCE_PATH = ":4041/iot/services"
 
     HTTP_INFO = [

@@ -34,7 +34,7 @@ class NgsiEntities:
             'entity_id',
             'type'
         ],
-        "Retrive": [
+        "Retrieve": [
             'entity_id',
             'type',
             'attrs',
@@ -90,11 +90,15 @@ class NgsiEntities:
             query_params['options'] = input_params['options']
 
         # parse header params
-        header_params = {}
-        if 'content_type' not in input_params or input_params['content_type'] is None:
-            header_params['Content-Type'] = "application/json"
-        else:
-            header_params['Content-Type'] = input_params['content_type']
+        header_params = {
+            "Content-Type": "application/json",
+            "Fiware-Service": "openiot",
+            "Fiware-ServicePath": "/"
+        }
+
+        if 'content_type' in input_params:
+            if input_params['content_type'] is not None:
+                header_params['Content-Type'] = input_params['content_type']
 
         if 'fiware_service' in input_params:
             header_params['Fiware-Service'] = input_params['fiware_service']
@@ -139,7 +143,11 @@ class NgsiEntities:
         resource_path = self.RESOUCE_PATH
 
         # parse header param
-        header_params = {}
+        header_params = {
+            "Fiware-Service": "openiot",
+            "Fiware-ServicePath": "/"
+        }
+
         if 'fiware_service' in query_params:
             header_params['Fiware-Service'] = query_params['fiware_service']
         if 'fiware_service_path' in query_params:
@@ -178,7 +186,11 @@ class NgsiEntities:
         resource_path = f"{self.RESOUCE_PATH}/{entity_id}"
 
         # parse header param
-        header_params = {}
+        header_params = {
+            "Fiware-Service": "openiot",
+            "Fiware-ServicePath": "/"
+        }
+
         if 'fiware_service' in query_params:
             header_params['Fiware-Service'] = query_params['fiware_service']
         if 'fiware_service_path' in query_params:
@@ -217,7 +229,10 @@ class NgsiEntities:
         resource_path = f"{self.RESOUCE_PATH}/{entity_id}"
 
         # parse header param
-        header_params = {}
+        header_params = {
+            "Fiware-Service": "openiot",
+            "Fiware-ServicePath": "/"
+        }
 
         if 'fiware_service' in query_params:
             header_params['Fiware-Service'] = query_params['fiware_service']
@@ -256,7 +271,10 @@ class NgsiEntities:
         resource_path = f"{self.RESOUCE_PATH}/{entity_id}/attrs"
 
         # parse header param
-        header_params = {}
+        header_params = {
+            "Fiware-Service": "openiot",
+            "Fiware-ServicePath": "/"
+        }
 
         if 'fiware_service' in query_params:
             header_params['Fiware-Service'] = query_params['fiware_service']
@@ -303,7 +321,11 @@ class NgsiEntities:
         resource_path = f"{self.RESOUCE_PATH}/{entity_id}/attrs"
 
         # parse header param
-        header_params = {"Content-Type": "application/json"}
+        header_params = {
+            "Content-Type": "application/json",
+            "Fiware-Service": "openiot",
+            "Fiware-ServicePath": "/"
+        }
 
         if 'fiware_service' in query_params:
             header_params['Fiware-Service'] = query_params['fiware_service']
@@ -351,7 +373,11 @@ class NgsiEntities:
         resource_path = f"{self.RESOUCE_PATH}/{entity_id}/attrs"
 
         # parse header param
-        header_params = {"Content-Type": "application/json"}
+        header_params = {
+            "Content-Type": "application/json",
+            "Fiware-Service": "openiot",
+            "Fiware-ServicePath": "/"
+        }
 
         if 'fiware_service' in query_params:
             header_params['Fiware-Service'] = query_params['fiware_service']
@@ -399,7 +425,11 @@ class NgsiEntities:
         resource_path = f"{self.RESOUCE_PATH}/{entity_id}/attrs"
 
         # parse header param
-        header_params = {"Content-Type": "application/json"}
+        header_params = {
+            "Content-Type": "application/json",
+            "Fiware-Service": "openiot",
+            "Fiware-ServicePath": "/"
+        }
 
         if 'fiware_service' in query_params:
             header_params['Fiware-Service'] = query_params['fiware_service']
