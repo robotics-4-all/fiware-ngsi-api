@@ -44,7 +44,7 @@ class NgsiRobotAPI(NgsiEntities):
             try:
                 response = self._device_api.create(
                     id=self._robot['id'],
-                    type=RobotAPI.ENTITY_TYPE,
+                    type=NgsiRobotAPI.ENTITY_TYPE,
                     attrs=self._robot['attributes']
                 )
 
