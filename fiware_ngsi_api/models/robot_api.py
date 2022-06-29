@@ -31,7 +31,12 @@ class NgsiRobotAPI(NgsiEntities):
 
         super(NgsiRobotAPI, self).__init__(api_client)
 
-        self._load_settings()
+        if isinstance(file_path, str):
+            self._load_settings()
+        else:
+            self._robot = file_path
+            self._robot_id = self._robot['id']
+            self.file_path = None
 
         self._service_api = NgsiService(api_client)
         self._device_api = NgsiDevice(api_client)
