@@ -25,12 +25,13 @@ class NgsiRobotAPI(NgsiEntities):
         self.api_client = api_client
         self.service = service
         self.service_path = service_path
+        self.file_path = file_path
 
         self.type = NgsiRobotAPI.ENTITY_TYPE
 
         super(NgsiRobotAPI, self).__init__(api_client)
 
-        self._load_settings(file_path)
+        self._load_settings()
 
         self._service_api = NgsiService(api_client)
         self._device_api = NgsiDevice(api_client)
@@ -111,12 +112,15 @@ class NgsiRobotAPI(NgsiEntities):
 
     @pose.setter
     def pose(self, new_pose):
-        self._set_robot_attr({
+        response = self._set_robot_attr({
             "pose": {
                 "type": "pose",
                 "value": new_pose
             }
         })
+
+        if response:
+            self._robot["attributes"]["pose"]["value"] = new_pose
 
     @property
     def target(self):
@@ -124,12 +128,15 @@ class NgsiRobotAPI(NgsiEntities):
 
     @target.setter
     def target(self, new_target):
-        self._set_robot_attr({
+        response = self._set_robot_attr({
             "target": {
                 "type": "point",
                 "value": new_target
             }
         })
+
+        if response:
+            self._robot["attributes"]["target"]["value"] = new_target
 
     @property
     def target_product(self):
@@ -137,12 +144,15 @@ class NgsiRobotAPI(NgsiEntities):
 
     @target_product.setter
     def target_product(self, new_target_product):
-        self._set_robot_attr({
+        response = self._set_robot_attr({
             "targetProduct": {
                 "type": "productID",
                 "value": new_target_product
             }
         })
+
+        if response:
+            self._robot["attributes"]["targetProduct"]["value"] = new_target_product
 
     @property
     def velocities(self):
@@ -150,12 +160,15 @@ class NgsiRobotAPI(NgsiEntities):
 
     @velocities.setter
     def velocities(self, new_velocities):
-        self._set_robot_attr({
+        response = self._set_robot_attr({
             "velocities": {
                 "type": "vector2d",
                 "value": new_velocities
             }
         })
+
+        if response:
+            self._robot["attributes"]["targetProduct"]["value"] = new_velocities
 
     @property
     def path(self):
@@ -163,12 +176,15 @@ class NgsiRobotAPI(NgsiEntities):
 
     @path.setter
     def path(self, new_path):
-        self._set_robot_attr({
+        response = self._set_robot_attr({
             "path": {
                 "type": "list",
                 "value": new_path
             }
         })
+
+        if response:
+            self._robot["attributes"]["path"]["value"] = new_path
 
     @property
     def state(self):
@@ -176,12 +192,15 @@ class NgsiRobotAPI(NgsiEntities):
 
     @state.setter
     def state(self, new_state):
-        self._set_robot_attr({
+        response = self._set_robot_attr({
             "state": {
                 "type": "enum",
                 "value": new_state
             }
         })
+
+        if response:
+            self._robot["attributes"]["state"]["value"] = new_state
 
     @property
     def power(self):
@@ -189,12 +208,15 @@ class NgsiRobotAPI(NgsiEntities):
 
     @power.setter
     def power(self, new_power):
-        self._set_robot_attr({
+        response = self._set_robot_attr({
             "power": {
                 "type": "float",
                 "value": new_power
             }
         })
+
+        if response:
+            self._robot["attributes"]["power"]["value"] = new_power
 
     @property
     def heartbeat(self):
@@ -202,12 +224,15 @@ class NgsiRobotAPI(NgsiEntities):
 
     @heartbeat.setter
     def heartbeat(self, new_heartbeat):
-        self._set_robot_attr({
+        response = self._set_robot_attr({
             "heartbeat": {
                 "type": "boolean",
                 "value": new_heartbeat
             }
         })
+
+        if response:
+            self._robot["attributes"]["heartbeat"]["value"] = new_heartbeat
 
     @property
     def logs(self):
@@ -215,12 +240,15 @@ class NgsiRobotAPI(NgsiEntities):
 
     @logs.setter
     def logs(self, new_logs):
-        self._set_robot_attr({
+        response = self._set_robot_attr({
             "logs": {
                 "type": "string",
                 "value": new_logs
             }
         })
+
+        if response:
+            self._robot["attributes"]["logs"]["value"] = new_logs
 
     @property
     def image(self):
@@ -228,12 +256,15 @@ class NgsiRobotAPI(NgsiEntities):
 
     @image.setter
     def image(self, new_image):
-        self._set_robot_attr({
+        response = self._set_robot_attr({
             "image": {
                 "type": "string",
                 "value": new_image
             }
         })
+
+        if response:
+            self._robot["attributes"]["image"]["value"] = new_image
 
     def _get_robot_attr(self, attr):
         try:
@@ -261,12 +292,14 @@ class NgsiRobotAPI(NgsiEntities):
 
             if response.status == 204:
                 print("Succesfull!")
+                return True
         except Exception as e:
             print(f"Error occured when trying to get attr: {value.keys()}")
+            return False
 
-    def _load_settings(self, file_path):
-        if os.path.exists(file_path):
-            with open(file_path, "r") as stream:
+    def _load_settings(self):
+        if os.path.exists(self.file_path):
+            with open(self.file_path, "r") as stream:
                 try:
                     self._robot = yaml.safe_load(stream)['Robot']
 
@@ -318,3 +351,27 @@ class NgsiRobotAPI(NgsiEntities):
         except Exception as e:
             print(f"Error occured when searching {self.type} device: {e}.")
             return False
+
+    def __del_(self):
+        robot_to_save = {
+            "Robot": self._robot
+        }
+
+        if os.path.exists(self.file_path):
+            try:
+                with open(self.file_path, "w") as outstream:
+                    yaml.dump(robot_to_save, outstream,
+                              default_flow_style=False)
+            except yaml.YAMLError as e:
+                NgsiRobotAPIError(
+                    id=self.robot_id,
+                    error="Caught error when parsing yaml file!")
+            except KeyError as e:
+                NgsiRobotAPIError(
+                    id=self.robot_id,
+                    error="Caught Key value error!")
+        else:
+            raise IOError("Invalid settings path!")
+
+    # to add logger
+    # to add setting group of attributes
