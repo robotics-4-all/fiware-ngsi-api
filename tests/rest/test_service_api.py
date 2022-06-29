@@ -30,4 +30,4 @@ if __name__ == "__main__":
     print("Available services: ", available_services)
 
     # delete the newly created service
-    # response = service_api.delete(api_key=API_KEY)
+    response = service_api.delete(api_key=API_KEY)

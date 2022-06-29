@@ -1,0 +1,9 @@
+Slot:
+  id: urn:ngsi-ld:Slot:0010
+  originx:
+    type: number
+    value: 0.8
+  type: Slot
+  width:
+    type: number
+    value: 10

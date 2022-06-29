@@ -169,7 +169,7 @@ class NgsiEntities:
         query_params = {}
 
         for key, val in six.iteritems(params['kwargs']):
-            if key in NgsiEntities.ALL_PARAMS['Retrive']:
+            if key in NgsiEntities.ALL_PARAMS['Retrieve']:
                 query_params[key] = val
             else:
                 raise TypeError(
