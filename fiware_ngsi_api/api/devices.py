@@ -128,8 +128,8 @@ class NgsiDevice(object):
             _request_timeout=None
         )
 
-    def delete(self, id, type, service="openiot", service_path="/"):
-        resource_path = f"{NgsiDevice.RESOURCE_PATH}/{type}{id}"
+    def delete(self, id, service="openiot", service_path="/"):
+        resource_path = f"{NgsiDevice.RESOURCE_PATH}/{id}"
 
         header_params = {
             "Fiware-Service": service,
@@ -137,7 +137,7 @@ class NgsiDevice(object):
         }
 
         return self.api_client.call_api(
-            method="GET",
+            method="DELETE",
             resource_path=resource_path,
             header_params=header_params,
             async_req=None,
@@ -145,93 +145,3 @@ class NgsiDevice(object):
             _preload_content=None,
             _request_timeout=None
         )
-
-        # class RobotDevice(NgsiDevice):
-        #     def __init__(self, id, api_client, ngsi_group):
-        #         super(RobotDevice, self).__init__(id=id,
-        #                                           type=ngsi_group.type,
-        #                                           api_client=api_client)
-
-        #         self.attributes = {
-        #             "pose": {
-        #                 "type": "pose",
-        #                 "x": 0.0,
-        #                 "y": 0.0,
-        #                 "z": 0.0
-        #             },
-        #             "path": {
-        #                 "type": "list",
-        #                 "points": []
-        #             },
-        #             "target": {
-        #                 "type": "point",
-        #                 "x": 0.0,
-        #                 "y": 0.0
-        #             },
-        #             "targetProduct": {
-        #                 "type": "productID",
-        #                 "val": "Product-001"
-        #             },
-        #             "velocities": {
-        #                 "type": "vector2d",
-        #                 "linear": 0.0,
-        #                 "angular": 0.0
-        #             },
-        #             "state": {
-        #                 "type": "enum",
-        #                 "val": "IDLE"
-        #             },
-        #             "power": {
-        #                 "type": "float",
-        #                 "percentage": 1.0
-        #             },
-        #             "heartbeat": {
-        #                 "type": "bool",
-        #                 "val": True,
-        #             },
-        #             "logs": {
-        #                 "type": "string",
-        #                 "val": "I am a default log!"
-        #             },
-        #             "image": {
-        #                 "type": "string",
-        #                 "val": ""
-        #             }
-        #         }
-
-        #         self._create(
-        #             service=ngsi_group.service,
-        #             service_path=ngsi_group.service_path
-        #         )
-
-        # class RobotKPIDevice(DeviceBase):
-        #     TYPE = DeviceType.ROBOT
-
-        #     def __init__(self, id, api_client, ngsi_group):
-        #         super(RobotKPIDevice, self).__init__(id=id,
-        #                                              type=ngsi_group.type,
-        #                                              api_client=api_client)
-
-        #         self.attributes = {
-        #             "date": {
-        #                 "type": "Date",
-        #                 "val": "14/06/2022"
-        #             },
-        #             "boxesMoved": {
-        #                 "type": "number",
-        #                 "val": 1
-        #             },
-        #             "palletesMoved": {
-        #                 "type": "number",
-        #                 "val": 1
-        #             },
-        #             "distance": {
-        #                 "type": "number",
-        #                 "val": 0.0
-        #             }
-        #         }
-
-        #         self._create(
-        #             service=ngsi_group.service,
-        #             service_path=ngsi_group.service_path
-        #         )

@@ -1,3 +1,4 @@
+from urllib import response
 from fiware_ngsi_api.api_client import NgsiApiClient
 from fiware_ngsi_api.configuration import NgsiConfiguration
 from fiware_ngsi_api.api.services import NgsiService
@@ -12,10 +13,23 @@ import yaml
 
 API_KEY = "1234abcd"
 
+
+def checker(response):
+    if not successfull_response(response.status):
+        print(
+            f"Error when creating entity with status: {response.status} and msg: {response.data}")
+    else:
+        print("Created successfully!")
+
+
+def successfull_response(status_code):
+    return True if (status_code >= 200 and status_code < 300) else False
+
+
 def cleanup_type(ngsi_type, ngsi, device_api, service_api):
     print("<<<-------------------------------->>>")
     print("Preparing " + ngsi_type + " type")
-    res = ngsi.list_entities(type = ngsi_type)
+    res = ngsi.list_entities(type=ngsi_type)
     resp = json.loads(res.data)
     print("Number of entities: " + str(len(resp)))
     for i in resp:
@@ -25,12 +39,37 @@ def cleanup_type(ngsi_type, ngsi, device_api, service_api):
 
     response = device_api.list(type=ngsi_type)
     response_msg = json.loads(response.data)
+
     print("Devices found: " + str(len(response_msg['devices'])))
     for i in response_msg['devices']:
-        device_api.delete(id = i['device_id'], type = ngsi_type)
+        device_api.delete(id=i['device_id'])
         # TODO: DOES NOT DELETE THE DEVICES!!
 
-    service_api.create(api_key=API_KEY, type=ngsi_type)
+    print(f"Searching for existing services of type {ngsi_type} ...")
+    response = service_api.list()
+    if (successfull_response(response.status)):
+        response = json.loads(response.data)
+        for service in response["services"]:
+            if service["entity_type"] == ngsi_type:
+                print(
+                    f"Found {ngsi_type} service with API Key = {service['apikey']}")
+
+                time.sleep(1)
+
+                print("Now deleting it ...")
+                response = service_api.delete(api_key=service['apikey'])
+                if (not successfull_response(response.status)):
+                    print(
+                        f"Error occured when tried to delete {ngsi_type} service")
+
+    response = service_api.create(
+        api_key=f"{API_KEY}{ngsi_type}", type=ngsi_type)
+
+    if (not successfull_response(response.status)):
+        print(
+            f"Error when creating service {ngsi_type} with msg {response.data}")
+    else:
+        print(f"Service {ngsi_type} created succesfully!")
 
 
 if __name__ == "__main__":
@@ -39,17 +78,20 @@ if __name__ == "__main__":
 
     device_api = NgsiDevice(api_client=api_client)
     service_api = NgsiService(api_client=api_client)
-    service_api.delete(api_key=API_KEY)
     ngsi = NgsiEntities(api_client)
 
     #---------------------- Warehouse handling --------------------------#
-    cleanup_type("Warehouse", ngsi, device_api, service_api)
+    entity_type = "Warehouse"
+    cleanup_type(entity_type, ngsi, device_api, service_api)
     time.sleep(1)
 
     entity_yaml = {
         "id": "-",
         "type": "Warehouse",
-        "name": "Bleujour",
+        "name": {
+            "type": "Text",
+            "value": "Bleujour"
+        },
         "georeference": {
             "type": "vector",
             "value": {
@@ -63,70 +105,82 @@ if __name__ == "__main__":
                         "streetAddress": "37 Av. Jules Julien",
                         "addressRegion": "Toulouse, France",
                         "addressLocality": "-",
-                        "postalCode": "31400" 
+                        "postalCode": "31400"
                     }
                 }
             }
         },
-        'attributes': {
-            "blueprint": {
-                "type": "string",
-                "value": ""
-            },
-            "dimensions": {
-                "type": "vector",
-                "value": {
-                    "width": 120,
-                    "height": 80,
-                    "resolution": 0.2
-                }
-            },
-            "annotations": {
-                "type": "list",
-                "value": [] 
+        "blueprint": {
+            "type": "string",
+            "value": ""
+        },
+        "dimensions": {
+            "type": "vector",
+            "value": {
+                "width": 120,
+                "height": 80,
+                "resolution": 0.2
             }
-        }
+        },
+        "annotations": {
+            "type": "list",
+            "value": []
+        },
     }
 
     print("Creating Warehouse...")
-    entity_yaml["id"] = 1
-    ngsi.create_entity(entity_yaml)
+    entity_yaml["id"] = f"urn:ngsi-ld:{entity_type}:{1}"
+    checker(ngsi.create_entity(entity_yaml))
+
     time.sleep(0.5)
 
     #---------------------- WarehouseKPI handling --------------------------#
-    cleanup_type("WarehouseKPI", ngsi, device_api, service_api)
+    entity_type = "WarehouseKPI"
+    cleanup_type(entity_type, ngsi, device_api, service_api)
     time.sleep(1)
 
     entity_yaml = {
         "id": "-",
-        "type": "WarehouseKPI",
-        'attributes': {
-            "date": {
-                "type": "Date",
+        "type": entity_type,
+        "date": {
+            "type": "Date",
+            "value": {
                 "val": "14/06/2022"
-            },
-            "palleteStorageDensity":{
-                "type": "number",
+            }
+        },
+        "palleteStorageDensity": {
+            "type": "number",
+            "value": {
                 "val": 1
-            },
-            "distanceXmassMovedByRobots":{
-                "type": "number",
+            }
+        },
+        "distanceXmassMovedByRobots": {
+            "type": "number",
+            "value": {
                 "val": 1
-            },
-            "distanceXmassMovedByOperators":{
-                "type": "number",
+            }
+        },
+        "distanceXmassMovedByOperators": {
+            "type": "number",
+            "value": {
                 "val": 1
-            },
-            "palletsMoved":{
-                "type": "number",
+            }
+        },
+        "palletsMoved": {
+            "type": "number",
+            "value": {
                 "val": 1
-            },
-            "parcelsMoved":{
-                "type": "number",
+            }
+        },
+        "parcelsMoved": {
+            "type": "number",
+            "value": {
                 "val": 1
-            },
-            "savedTimeshareForOperator":{
-                "type": "number",
+            }
+        },
+        "savedTimeshareForOperator": {
+            "type": "number",
+            "value": {
                 "val": 1
             }
         },
@@ -137,13 +191,15 @@ if __name__ == "__main__":
     }
 
     print("Creating WarehouseKPI...")
-    entity_yaml["id"] = 1
-    ngsi.create_entity(entity_yaml)
+    entity_yaml["id"] = f"urn:ngsi-ld:{entity_type}:{1}"
+    checker(ngsi.create_entity(entity_yaml))
     time.sleep(0.5)
 
     #---------------------- Robots handling --------------------------#
     cleanup_type("Robot", ngsi, device_api, service_api)
     time.sleep(1)
+
+    service_api.list()
 
     # Load robot yaml
     robot_yaml = {}
@@ -177,27 +233,34 @@ if __name__ == "__main__":
     time.sleep(0.5)
 
     #---------------------- Robots KPIs handling --------------------------#
-    cleanup_type("RobotKPI", ngsi, device_api, service_api)
+    entity_type = "RobotKPI"
+    cleanup_type(entity_type, ngsi, device_api, service_api)
     time.sleep(1)
 
     entity_yaml = {
         "id": "-",
-        "type": "RobotKPI",
-        'attributes': {
-            'date': {
-                'type': 'Date',
+        "type": entity_type,
+        'date': {
+            'type': 'Date',
+            'value': {
                 'val': ''
-            },
-            'boxedMoved': {
-                'type': 'number',
+            }
+        },
+        'boxedMoved': {
+            'type': 'number',
+            'value': {
                 'val': 0
-            },
-            'palletesMoved': {
-                'type': 'number',
+            }
+        },
+        'palletesMoved': {
+            'type': 'number',
+            'value': {
                 'val': 0
-            },
-            'distance': {
-                'type': 'number',
+            }
+        },
+        'distance': {
+            'type': 'number',
+            'value': {
                 'val': 0
             }
         },
@@ -208,51 +271,48 @@ if __name__ == "__main__":
     }
 
     print("Creating RobotKPI1...")
-    entity_yaml["id"] = 1
-    ngsi.create_entity(entity_yaml)
+    entity_yaml["id"] = f"urn:ngsi-ld:{entity_type}:{1}"
+    checker(ngsi.create_entity(entity_yaml))
     time.sleep(0.5)
 
-    time.sleep(3)
- 
     #---------------------- Room  handling --------------------------#
-    cleanup_type("Room", ngsi, device_api, service_api)
+    entity_type = "Room"
+    cleanup_type(entity_type, ngsi, device_api, service_api)
     time.sleep(1)
 
     entity_yaml = {
         "id": "-",
-        "type": "Room",
-        'attributes': {
-            "floor": {
-                "type": "number",
-                "value": 0
-            },
-            "blueprint": {
-                "type": "string",
-                "value": ""
-            },
-            "dimensions": {
-                "type": "vector",
-                "value": {
-                    "width": 10, 
-                    "height": 15.2, 
-                    "z": 4.5, 
-                    "resolution": 0.2 
-                }
-            },
-            "annotations": {
-                "type": "list",
-                "value": [] 
-            },
-            "groundType": {
-                "type": "string",
-                "value": ""
-            },
-            "origin": {
-                "type": "vector",
-                "value": {
-                    "x": 230, 
-                    "y": 140 
-                }
+        "type": entity_type,
+        "floor": {
+            "type": "number",
+            "value": 0
+        },
+        "blueprint": {
+            "type": "string",
+            "value": ""
+        },
+        "dimensions": {
+            "type": "vector",
+            "value": {
+                "width": 10,
+                "height": 15.2,
+                "z": 4.5,
+                "resolution": 0.2
+            }
+        },
+        "annotations": {
+            "type": "list",
+            "value": []
+        },
+        "groundType": {
+            "type": "string",
+            "value": ""
+        },
+        "origin": {
+            "type": "vector",
+            "value": {
+                "x": 230,
+                "y": 140
             }
         },
         "refWarehouse": {
@@ -262,37 +322,36 @@ if __name__ == "__main__":
     }
 
     print("Creating Room1...")
-    entity_yaml["id"] = 1
-    ngsi.create_entity(entity_yaml)
+    entity_yaml["id"] = f"urn:ngsi-ld:{entity_type}:{1}"
+    checker(ngsi.create_entity(entity_yaml))
     time.sleep(0.5)
 
     #---------------------- Rack  handling --------------------------#
+    entity_type = "Rack"
     cleanup_type("Rack", ngsi, device_api, service_api)
     time.sleep(1)
 
     entity_yaml = {
         "id": "-",
-        "type": "Rack",
-        'attributes': {
-            "maxPayload": {
-                "type": "number",
-                "value": 300
-            },
-            "dimensions": {
-                "type": "vector",
-                "value": {
-                    "length": 3, 
-                    "width": 1.5, 
-                    "height": 0.8, 
-                    "orientation": 0
-                }
-            },
-            "origin": {
-                "type": "vector",
-                "value": {
-                    "x": 1.2, 
-                    "y": 0.6 
-                }
+        "type": entity_type,
+        "maxPayload": {
+            "type": "number",
+            "value": 300
+        },
+        "dimensions": {
+            "type": "vector",
+            "value": {
+                "length": 3,
+                "width": 1.5,
+                "height": 0.8,
+                "orientation": 0
+            }
+        },
+        "origin": {
+            "type": "vector",
+            "value": {
+                "x": 1.2,
+                "y": 0.6
             }
         },
         "refRoom": {
@@ -302,26 +361,26 @@ if __name__ == "__main__":
     }
 
     print("Creating Rack1...")
-    entity_yaml["id"] = 1
-    ngsi.create_entity(entity_yaml)
+    entity_yaml["id"] = f"urn:ngsi-ld:{entity_type}:{1}"
+    checker(ngsi.create_entity(entity_yaml))
     time.sleep(0.5)
 
     #---------------------- Shelf  handling --------------------------#
-    cleanup_type("Shelf", ngsi, device_api, service_api)
+    entity_type = "Shelf"
+    cleanup_type(entity_type, ngsi, device_api, service_api)
     time.sleep(1)
 
     entity_yaml = {
         "id": "-",
-        "type": "Shelf",
-        'attributes': {
-            "altitude": {
-                "type": "number",
-                "value": 2.5
-            },
-            "surfaceNature": {
-                "type": "string",
-                "value": ""
-            }
+        "type": entity_type,
+
+        "altitude": {
+            "type": "number",
+            "value": 2.5
+        },
+        "surfaceNature": {
+            "type": "string",
+            "value": ""
         },
         "refRack": {
             "type": "Relationship",
@@ -330,26 +389,25 @@ if __name__ == "__main__":
     }
 
     print("Creating Shelf1...")
-    entity_yaml["id"] = 1
-    ngsi.create_entity(entity_yaml)
+    entity_yaml["id"] = f"urn:ngsi-ld:{entity_type}:{1}"
+    checker(ngsi.create_entity(entity_yaml))
     time.sleep(0.5)
 
     #---------------------- Slot  handling --------------------------#
-    cleanup_type("Slot", ngsi, device_api, service_api)
+    entity_type = "Slot"
+    cleanup_type(entity_type, ngsi, device_api, service_api)
     time.sleep(1)
 
     entity_yaml = {
         "id": "-",
-        "type": "Slot",
-        'attributes': {
-            "width": {
-                "type": "number",
-                "value": 2.5
-            },
-            "originx": {
-                "type": "number",
-                "value": 0.5
-            }
+        "type": entity_type,
+        "width": {
+            "type": "number",
+            "value": 2.5
+        },
+        "originx": {
+            "type": "number",
+            "value": 0.5
         },
         "refShelf": {
             "type": "Relationship",
@@ -358,40 +416,39 @@ if __name__ == "__main__":
     }
 
     print("Creating Slot1...")
-    entity_yaml["id"] = 1
-    ngsi.create_entity(entity_yaml)
+    entity_yaml["id"] = f"urn:ngsi-ld:{entity_type}:{1}"
+    checker(ngsi.create_entity(entity_yaml))
     time.sleep(0.5)
 
     #---------------------- Pallet  handling --------------------------#
-    cleanup_type("Pallet", ngsi, device_api, service_api)
+    entity_type = "Pallet"
+    cleanup_type(entity_type, ngsi, device_api, service_api)
     time.sleep(1)
 
     entity_yaml = {
         "id": "-",
-        "type": "Pallet",
-        'attributes': {
-            "dimensions": {
-                "type": "vector",
-                "value": {
-                    "length": 0,
-                    "width": 0,
-                    "height": 0
-                }
-            },
-            "barcode": {
-                "type": "string",
-                "value": {
-                    "val": "xxx"
-                }
-            },
-            "material": {
-                "type": "string",
-                "value": ""
-            },
-            "fragile": {
-                "type": "bool",
-                "value": false
+        "type": entity_type,
+        "dimensions": {
+            "type": "vector",
+            "value": {
+                "length": 0,
+                "width": 0,
+                "height": 0
             }
+        },
+        "barcode": {
+            "type": "string",
+            "value": {
+                "val": "xxx"
+            }
+        },
+        "material": {
+            "type": "string",
+            "value": ""
+        },
+        "fragile": {
+            "type": "bool",
+            "value": "false"
         },
         "refSlot": {
             "type": "Relationship",
@@ -400,58 +457,57 @@ if __name__ == "__main__":
     }
 
     print("Creating Pallet1...")
-    entity_yaml["id"] = 1
-    ngsi.create_entity(entity_yaml)
+    entity_yaml["id"] = f"urn:ngsi-ld:{entity_type}:{1}"
+    checker(ngsi.create_entity(entity_yaml))
     time.sleep(0.5)
 
     #---------------------- Pallet  handling --------------------------#
-    cleanup_type("Parcel", ngsi, device_api, service_api)
+    entity_type = "Parcel"
+    cleanup_type(entity_type, ngsi, device_api, service_api)
     time.sleep(1)
 
     entity_yaml = {
         "id": "-",
-        "type": "Parcel",
-        'attributes': {
-            "dimensions": {
-                "type": "vector",
-                "value": {
-                    "length": 0,
-                    "width": 0,
-                    "height": 0
-                }
-            },
-            "sku": {
-                "type": "string",
-                "value": "xxx"
-            },
-            "manufacturer": {
-                "type": "string",
-                "value": ""
-            },
-            "manufDate": {
-                "type": "Date",
-                "value": ""
-            },
-            "content": {
-                "type": "string",
-                "value": ""
-            },
-            "mass": {
-                "type": "number",
-                "value": 0
-            },
-            "price": {
-                "type": "number",
-                "value": 0
-            },
-            "fragile": {
-                "type": "bool",
-                "value": false
-            },
-            "itemQuantity": {
-                "type": "number",
-                "value": 10
+        "type": entity_type,
+        "dimensions": {
+            "type": "vector",
+            "value": {
+                "length": 0,
+                "width": 0,
+                "height": 0
             }
+        },
+        "sku": {
+            "type": "string",
+            "value": "xxx"
+        },
+        "manufacturer": {
+            "type": "string",
+            "value": ""
+        },
+        "manufDate": {
+            "type": "Date",
+            "value": ""
+        },
+        "content": {
+            "type": "string",
+            "value": ""
+        },
+        "mass": {
+            "type": "number",
+            "value": 0
+        },
+        "price": {
+            "type": "number",
+            "value": 0
+        },
+        "fragile": {
+            "type": "bool",
+            "value": "false"
+        },
+        "itemQuantity": {
+            "type": "number",
+            "value": 10
         },
         "refPallet": {
             "type": "Relationship",
@@ -460,12 +516,9 @@ if __name__ == "__main__":
     }
 
     print("Creating Parcel1...")
-    entity_yaml["id"] = 1
-    ngsi.create_entity(entity_yaml)
+    entity_yaml["id"] = f"urn:ngsi-ld:{entity_type}:{1}"
+    checker(ngsi.create_entity(entity_yaml))
     time.sleep(0.5)
 
     # to end...
     time.sleep(5)
-
-
-    
