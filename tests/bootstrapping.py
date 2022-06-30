@@ -27,7 +27,7 @@ def cleanup_type(ngsi_type, ngsi, device_api, service_api):
     response_msg = json.loads(response.data)
     print("Devices found: " + str(len(response_msg['devices'])))
     for i in response_msg['devices']:
-        device_api.delete(id = i['device_id'], type = "RobotAPI")
+        device_api.delete(id = i['device_id'], type = ngsi_type)
         # TODO: DOES NOT DELETE THE DEVICES!!
 
     service_api.create(api_key=API_KEY, type=ngsi_type)
