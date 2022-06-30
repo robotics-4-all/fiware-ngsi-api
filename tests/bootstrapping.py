@@ -117,9 +117,9 @@ if __name__ == "__main__":
         "dimensions": {
             "type": "vector",
             "value": {
-                "width": 120,
-                "height": 80,
-                "resolution": 0.2
+                "width": 100,
+                "height": 50,
+                "resolution": 0.1
             }
         },
         "annotations": {
@@ -294,10 +294,10 @@ if __name__ == "__main__":
         "dimensions": {
             "type": "vector",
             "value": {
-                "width": 10,
-                "height": 15.2,
+                "width": 20,
+                "height": 20,
                 "z": 4.5,
-                "resolution": 0.2
+                "resolution": 0.1
             }
         },
         "annotations": {
@@ -311,8 +311,8 @@ if __name__ == "__main__":
         "origin": {
             "type": "vector",
             "value": {
-                "x": 230,
-                "y": 140
+                "x": 25,
+                "y": 5
             }
         },
         "refWarehouse": {
@@ -341,17 +341,17 @@ if __name__ == "__main__":
         "dimensions": {
             "type": "vector",
             "value": {
-                "length": 3,
-                "width": 1.5,
-                "height": 0.8,
-                "orientation": 0
+                "length": 10,
+                "width": 1,
+                "height": 4,
+                "orientation": 0.78539
             }
         },
         "origin": {
             "type": "vector",
             "value": {
-                "x": 1.2,
-                "y": 0.6
+                "x": 2,
+                "y": 10
             }
         },
         "refRoom": {
@@ -403,11 +403,11 @@ if __name__ == "__main__":
         "type": entity_type,
         "width": {
             "type": "number",
-            "value": 2.5
+            "value": 0.5
         },
         "originx": {
             "type": "number",
-            "value": 0.5
+            "value": 4
         },
         "refShelf": {
             "type": "Relationship",
@@ -472,9 +472,9 @@ if __name__ == "__main__":
         "dimensions": {
             "type": "vector",
             "value": {
-                "length": 0,
-                "width": 0,
-                "height": 0
+                "length": 0.2,
+                "width": 0.2,
+                "height": 0.2
             }
         },
         "sku": {
@@ -495,7 +495,7 @@ if __name__ == "__main__":
         },
         "mass": {
             "type": "number",
-            "value": 0
+            "value": 1
         },
         "price": {
             "type": "number",
@@ -503,7 +503,7 @@ if __name__ == "__main__":
         },
         "fragile": {
             "type": "bool",
-            "value": "false"
+            "value": "true"
         },
         "itemQuantity": {
             "type": "number",
