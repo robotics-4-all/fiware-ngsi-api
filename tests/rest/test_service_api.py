@@ -15,6 +15,7 @@ if __name__ == "__main__":
 
     # create a new service
     response = service_api.create(api_key=API_KEY, type="Robot")
+    print("Creation services: ", json.loads(response.data))
 
     # update the new service
     body = {
@@ -22,12 +23,14 @@ if __name__ == "__main__":
         "entity_type": "Robot"
     }
 
-    response = service_api.update(api_key=API_KEY, body=body)
+    # response = service_api.update(api_key=API_KEY, body=body)
+    # print("Update services: ", json.loads(response.data))
 
-    # list the available services
+    # # list the available services
     response = service_api.list()
     available_services = json.loads(response.data)
     print("Available services: ", available_services)
 
-    # delete the newly created service
-    response = service_api.delete(api_key=API_KEY)
+    # # delete the newly created service
+    # response = service_api.delete(api_key=API_KEY)
+    # print("Deleting services: ", json.loads(response.data))

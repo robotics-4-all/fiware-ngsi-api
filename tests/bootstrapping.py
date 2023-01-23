@@ -10,6 +10,7 @@ import os
 import json
 import time
 import yaml
+import base64
 
 API_KEY = "1234abcd"
 
@@ -85,6 +86,12 @@ if __name__ == "__main__":
     cleanup_type(entity_type, ngsi, device_api, service_api)
     time.sleep(1)
 
+    file = open("../imgs/smalltown_world.png", "rb")
+    fileContent = file.read()
+    byteArr = bytearray(fileContent)
+    map = base64.b64encode(fileContent).decode("ascii")
+    file.close()
+
     entity_yaml = {
         "id": "-",
         "type": "Warehouse",
@@ -112,14 +119,14 @@ if __name__ == "__main__":
         },
         "blueprint": {
             "type": "string",
-            "value": ""
+            "value": map
         },
         "dimensions": {
             "type": "vector",
             "value": {
-                "width": 100,
-                "height": 50,
-                "resolution": 0.1
+                "width": 489,
+                "height": 242,
+                "resolution": 0.05
             }
         },
         "annotations": {
@@ -195,16 +202,16 @@ if __name__ == "__main__":
     checker(ngsi.create_entity(entity_yaml))
     time.sleep(0.5)
 
-    #---------------------- Robots handling --------------------------#
+    # ---------------------- Robots handling --------------------------#
     cleanup_type("Robot", ngsi, device_api, service_api)
     time.sleep(1)
 
-    service_api.list()
+    response = service_api.create(api_key=API_KEY, type="Robot")
 
     # Load robot yaml
     robot_yaml = {}
-    if os.path.exists("../data-models/bootstrapping/robot1.yaml"):
-        with open("../data-models/bootstrapping/robot1.yaml", "r") as stream:
+    if os.path.exists("../data-models/robot.yaml"):
+        with open("../data-models/robot.yaml", "r") as stream:
             try:
                 robot_yaml = yaml.safe_load(stream)['Robot']
             except Exception as e:
@@ -215,22 +222,50 @@ if __name__ == "__main__":
     print("Creating Robot1...")
     robot_yaml['id'] = 1
     robot_yaml['name'] = "Robot" + str(robot_yaml['id'])
-    robot_yaml['refWarehouse'] = {
-        "type": "Relationship",
-        "value": "urn:ngsi-ld:Warehouse:1"
-    }
-    robot1 = NgsiRobotAPI(api_client, robot_yaml)
+    robot_yaml['static_attributes'] = [
+        {
+            "name": "refWarehouse",
+            "type": "Relationship",
+            "value": "urn:ngsi-ld:Warehouse:1"
+        }
+    ]
+    robot1 = NgsiRobotAPI(api_client, 1, robot_yaml)
     time.sleep(0.5)
+
+    robot1.pose = {"x": 0, "y": 0, "th": 0}
+    robot1.origin = {"x": 11.1, "y": 3.93}
+    robot1.target = {"x": 0, "y": 0}
+    robot1.path = {"points": []}
+    robot1.state = {"val": "IDLE"}
+    robot1.power = {"percentage": 1.0}
+    robot1.velocities = {"linear": 0, "angular": 0}
+    robot1.logs = {"val": ""}
+    robot1.image = {"val": ""}
+    robot1.heartbeat = {"val": False}
 
     print("Creating Robot2...")
     robot_yaml['id'] = 2
     robot_yaml['name'] = "Robot" + str(robot_yaml['id'])
-    robot_yaml['refWarehouse'] = {
-        "type": "Relationship",
-        "value": "urn:ngsi-ld:Warehouse:1"
-    }
-    robot1 = NgsiRobotAPI(api_client, robot_yaml)
+    robot_yaml['static_attributes'] = [
+        {
+            "name": "refWarehouse",
+            "type": "Relationship",
+            "value": "urn:ngsi-ld:Warehouse:1"
+        }
+    ]
+    robot2 = NgsiRobotAPI(api_client, 2, robot_yaml)
     time.sleep(0.5)
+
+    robot2.pose = {"x": 0, "y": 0, "th": 0}
+    robot2.origin = {"x": 13.1, "y": 3.93}
+    robot2.target = {"x": 0, "y": 0}
+    robot2.path = {"points": []}
+    robot2.state = {"val": "IDLE"}
+    robot2.power = {"percentage": 1.0}
+    robot2.velocities = {"linear": 0, "angular": 0}
+    robot2.logs = {"val": ""}
+    robot2.image = {"val": ""}
+    robot2.heartbeat = {"val": False}
 
     #---------------------- Robots KPIs handling --------------------------#
     entity_type = "RobotKPI"

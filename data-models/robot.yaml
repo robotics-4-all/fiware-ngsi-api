@@ -10,6 +10,11 @@ Robot:
         x: 0
         y: 0
         th: 0
+    origin:
+      type: "origin"
+      value:
+        x: 0
+        y: 0
     path:
       type: "list"
       value:
@@ -48,3 +53,11 @@ Robot:
       type: "string"
       value:
         val: "I am a base64 encoded image string"
+  static_attributes:
+    [
+      {
+        "name": "refWarehouse",
+        "type": "Relationship",
+        "value": "urn:ngsi-ld:Warehouse:1",
+      },
+    ]
