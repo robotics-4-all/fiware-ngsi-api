@@ -17,33 +17,33 @@ if __name__ == "__main__":
     device_api = NgsiDevice(api_client=api_client)
 
     # create a new service
-    # response = service_api.create(api_key=API_KEY, type="Robot")
+    response = service_api.create(api_key=API_KEY, type="Robot")
 
     # create a new device
-    # attrs = {
-    # "test1": {
-    #     "type": "test1",
-    #     "val": 1
-    # },
-    # "test2": {
-    #     "type": "test2",
-    #     "val": 1
-    # }
-    # }
+    attrs = {
+        "test1": {
+            "type": "test1",
+            "val": 1
+        },
+        "test2": {
+            "type": "test2",
+            "val": 1
+        }
+    }
 
-    # response = device_api.create(id=1, type="test", attrs=attrs)
+    response = device_api.create(id=1, type="test", attrs=attrs)
 
     # update the device
-    # new_attrs = {
-    #     "test1": 3
-    # }
+    new_attrs = {
+        "test1": 3
+    }
 
-    # response = device_api.update(id=1, type="test", new_attrs=new_attrs)
+    response = device_api.update(id=1, type="test", new_attrs=new_attrs)
 
     # list the device
-    # response = device_api.list(id=1, type="Robot")
-    # response_msg = json.loads(response.data)
-    # print("Device: ", response_msg)
+    response = device_api.list(id=1, type="Robot")
+    response_msg = json.loads(response.data)
+    print("Device: ", response_msg)
 
     # # list al devices
     response = device_api.list()
