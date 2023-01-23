@@ -4,36 +4,36 @@ from fiware_ngsi_api.api_client import NgsiApiClient
 from fiware_ngsi_api.models.robot_api import NgsiRobotAPI
 
 if __name__ == "__main__":
-    API_KEY = "1234"
+    API_KEY = "1234abcd"
     SENSOR_TYPE = "Robot"
-    ROBOT_ID = "001"
+    ROBOT_ID = 1
 
     if __name__ == "__main__":
         config = NgsiConfiguration("../../conf/settings.conf")
         client = NgsiApiClient(configuration=config)
 
-        robot = NgsiRobotAPI(client, "../../data-models/robot.yaml")
+        robot = NgsiRobotAPI(client, ROBOT_ID, "../../data-models/robot.yaml")
 
         # ============ Pose ============
         robot.pose = {
-            "x": 1,
-            "y": 2,
-            "th": 98
+            "x": 0,
+            "y": 0,
+            "th": 0
         }
 
         print(robot.pose)
 
         # ============ Path ============
         robot.path = {
-            "points": [[i, i] for i in range(10)]
+            "points": []
         }
 
         print(robot.path)
 
         # ============ Target ============
         robot.target = {
-            "x": 1,
-            "y": 2
+            "x": 0,
+            "y": 0
         }
 
         print(robot.target)
@@ -47,8 +47,8 @@ if __name__ == "__main__":
 
         # ============ velocities ============
         robot.velocities = {
-            "linear": 100,
-            "angular": -100
+            "linear": 0,
+            "angular": 0
         }
 
         print(robot.velocities)
@@ -69,21 +69,21 @@ if __name__ == "__main__":
 
         # ============ power ============
         robot.power = {
-            "percentage": 0.8
+            "percentage": 0.0
         }
 
         print(robot.power)
 
         # ============ Logs ============
         robot.logs = {
-            "val": "I am a new log!"
+            "val": ""
         }
 
         print(robot.logs)
 
         # ============ Image ============
         robot.image = {
-            "val": "I am a new base64 image!"
+            "val": ""
         }
 
         print(robot.image)

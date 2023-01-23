@@ -26,7 +26,7 @@ class NgsiDevice(object):
     def api_client(self, new_api_client):
         self._api_client = new_api_client
 
-    def create(self, id, type, attrs, service="openiot", service_path="/"):
+    def create(self, id, type, attrs, s_attrs, service="openiot", service_path="/"):
         resource_path = NgsiDevice.RESOURCE_PATH
 
         header_params = {
@@ -56,10 +56,15 @@ class NgsiDevice(object):
                     ]
                 }
 
+            static_attributes = {}
+            if s_attrs is not None:
+                static_attributes = s_attrs
+
             self.device = {
                 **header,
                 **attrs,
-                **mapping
+                **mapping,
+                "static_attributes": s_attrs,
             }
 
             body_params = json.dumps({

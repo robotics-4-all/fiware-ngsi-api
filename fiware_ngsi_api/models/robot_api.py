@@ -21,11 +21,14 @@ class NgsiRobotAPIError(Exception):
 class NgsiRobotAPI(NgsiEntities):
     ENTITY_TYPE = 'Robot'
 
-    def __init__(self, api_client, file_path, service="openiot", service_path="/"):
+    def __init__(self, api_client, robot_id, file_path, service="openiot", service_path="/"):
         self.api_client = api_client
         self.service = service
         self.service_path = service_path
         self.file_path = file_path
+        self.robot_id = robot_id
+
+        self._robot = None
 
         self.type = NgsiRobotAPI.ENTITY_TYPE
 
@@ -35,7 +38,6 @@ class NgsiRobotAPI(NgsiEntities):
             self._load_settings()
         else:
             self._robot = file_path
-            self._robot_id = self._robot['id']
             self.file_path = None
 
         self._service_api = NgsiService(api_client)
@@ -49,23 +51,24 @@ class NgsiRobotAPI(NgsiEntities):
         if not self._device_exists():
             try:
                 response = self._device_api.create(
-                    id=self._robot['id'],
+                    id=robot_id,
                     type=NgsiRobotAPI.ENTITY_TYPE,
-                    attrs=self._robot['attributes']
+                    attrs=self._robot['attributes'],
+                    s_attrs=self._robot['static_attributes']
                 )
 
                 if response.status != 201:
                     raise Exception(
-                        f"Error creating robot entity {self._robot['id']}: {response.data}")
+                        f"Error creating robot entity {robot_id}: {response.data}")
 
-                response = self.replace_all_entity_attributes(
-                    entity_id=f"urn:ngsi-ld:{self.type}:{self.robot_id}",
-                    body=self._robot['attributes']
-                )
+                # response = self.replace_all_entity_attributes(
+                #     entity_id=f"urn:ngsi-ld:{self.type}:{self.robot_id}",
+                #     body=self._robot['attributes']
+                # )
 
-                if response.status != 204:
-                    raise Exception(
-                        f"Error initializing robot entity {self._robot['id']}: {response.data}")
+                # if response.status != 204:
+                #     raise Exception(
+                #         f"Error initializing robot entity {robot_id}: {response.data}")
             except Exception as e:
                 raise NgsiRobotAPIError(
                     id=self.robot_id,
@@ -126,6 +129,22 @@ class NgsiRobotAPI(NgsiEntities):
 
         if response:
             self._robot["attributes"]["pose"]["value"] = new_pose
+
+    @property
+    def origin(self):
+        return self._get_robot_attr("origin")
+
+    @origin.setter
+    def origin(self, new_origin):
+        response = self._set_robot_attr({
+            "origin": {
+                "type": "origin",
+                "value": new_origin
+            }
+        })
+
+        if response:
+            self._robot["attributes"]["origin"]["value"] = new_origin
 
     @property
     def target(self):
@@ -307,8 +326,7 @@ class NgsiRobotAPI(NgsiEntities):
             with open(self.file_path, "r") as stream:
                 try:
                     self._robot = yaml.safe_load(stream)['Robot']
-
-                    self.robot_id = self._robot['id']
+                    print(self._robot)
                 except yaml.YAMLError as e:
                     NgsiRobotAPIError(
                         id=self.robot_id,
@@ -357,26 +375,27 @@ class NgsiRobotAPI(NgsiEntities):
             print(f"Error occured when searching {self.type} device: {e}.")
             return False
 
-    def __del_(self):
+    def __del__(self):
         robot_to_save = {
             "Robot": self._robot
         }
 
-        if os.path.exists(self.file_path):
-            try:
-                with open(self.file_path, "w") as outstream:
-                    yaml.dump(robot_to_save, outstream,
-                              default_flow_style=False)
-            except yaml.YAMLError as e:
-                NgsiRobotAPIError(
-                    id=self.robot_id,
-                    error="Caught error when parsing yaml file!")
-            except KeyError as e:
-                NgsiRobotAPIError(
-                    id=self.robot_id,
-                    error="Caught Key value error!")
-        else:
-            raise IOError("Invalid settings path!")
+        if self.file_path is not None:
+            if os.path.exists(self.file_path):
+                try:
+                    with open(self.file_path, "w") as outstream:
+                        yaml.dump(robot_to_save, outstream,
+                                  default_flow_style=False)
+                except yaml.YAMLError as e:
+                    NgsiRobotAPIError(
+                        id=self.robot_id,
+                        error="Caught error when parsing yaml file!")
+                except KeyError as e:
+                    NgsiRobotAPIError(
+                        id=self.robot_id,
+                        error="Caught Key value error!")
+            else:
+                raise IOError("Invalid settings path!")
 
     # to add logger
     # to add setting group of attributes

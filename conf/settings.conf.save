@@ -1,0 +1,5 @@
+[DEFAULT]
+Host = http://
+Username = test
+Password = 123
+
