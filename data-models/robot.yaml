@@ -4,6 +4,10 @@ Robot:
   id: "1"
   name: "A happy robot!"
   attributes:
+    robotClass:
+      type: "string"
+      value:
+        val: "m-bot"
     pose:
       type: "pose"
       value:

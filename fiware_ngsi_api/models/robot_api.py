@@ -115,6 +115,22 @@ class NgsiRobotAPI(NgsiEntities):
         self._service_path = new_service_path
 
     @property
+    def robotClass(self):
+        return self._get_robot_attr("robotClass")
+
+    @robotClass.setter
+    def robotClass(self, new_robot_class):
+        response = self._set_robot_attr({
+            "robotClass": {
+                "type": "string",
+                "value": new_robot_class
+            }
+        })
+
+        if response:
+            self._robot["attributes"]["robotClass"]["value"] = new_robot_class
+
+    @property
     def pose(self):
         return self._get_robot_attr("pose")
 
