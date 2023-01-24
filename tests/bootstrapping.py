@@ -130,8 +130,8 @@ if __name__ == "__main__":
             }
         },
         "annotations": {
-            "type": "list",
-            "value": []
+            "type": "dict",
+            "value": {}
         },
     }
 
@@ -232,6 +232,7 @@ if __name__ == "__main__":
     robot1 = NgsiRobotAPI(api_client, 1, robot_yaml)
     time.sleep(0.5)
 
+    robot1.robotClass = {"val": "m-bot"}
     robot1.pose = {"x": 0, "y": 0, "th": 0}
     robot1.origin = {"x": 11.1, "y": 3.93}
     robot1.target = {"x": 0, "y": 0}
@@ -256,6 +257,7 @@ if __name__ == "__main__":
     robot2 = NgsiRobotAPI(api_client, 2, robot_yaml)
     time.sleep(0.5)
 
+    robot2.robotClass = {"val": "bi-bot"}
     robot2.pose = {"x": 0, "y": 0, "th": 0}
     robot2.origin = {"x": 13.1, "y": 3.93}
     robot2.target = {"x": 0, "y": 0}
