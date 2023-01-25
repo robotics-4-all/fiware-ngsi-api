@@ -14,6 +14,18 @@ import base64
 
 API_KEY = "1234abcd"
 
+max_y = 12.28
+origin_x = -11.1
+origin_y = 3.93
+
+
+def transform_x(x):
+    return (x - origin_x)
+
+
+def transform_y(y):
+    return (y - max_y + origin_y)
+
 
 def checker(response):
     if not successfull_response(response.status):
@@ -233,7 +245,7 @@ if __name__ == "__main__":
     time.sleep(0.5)
 
     robot1.robotClass = {"val": "m-bot"}
-    robot1.pose = {"x": 0, "y": 0, "th": 0}
+    robot1.pose = {"x": 8.9, "y": 0, "th": 0.0}
     robot1.origin = {"x": 11.1, "y": 3.93}
     robot1.target = {"x": 0, "y": 0}
     robot1.path = {"points": []}
@@ -257,9 +269,9 @@ if __name__ == "__main__":
     robot2 = NgsiRobotAPI(api_client, 2, robot_yaml)
     time.sleep(0.5)
 
-    robot2.robotClass = {"val": "bi-bot"}
-    robot2.pose = {"x": 0, "y": 0, "th": 0}
-    robot2.origin = {"x": 13.1, "y": 3.93}
+    robot2.robotClass = {"val": "m-bot"}
+    robot2.pose = {"x": -7.4, "y": 0, "th": 0}
+    robot2.origin = {"x": 11.1, "y": 3.93}
     robot2.target = {"x": 0, "y": 0}
     robot2.path = {"points": []}
     robot2.state = {"val": "IDLE"}
@@ -268,6 +280,8 @@ if __name__ == "__main__":
     robot2.logs = {"val": ""}
     robot2.image = {"val": ""}
     robot2.heartbeat = {"val": False}
+
+    time.sleep(10)
 
     #---------------------- Robots KPIs handling --------------------------#
     entity_type = "RobotKPI"
@@ -348,8 +362,8 @@ if __name__ == "__main__":
         "origin": {
             "type": "vector",
             "value": {
-                "x": 25,
-                "y": 5
+                "x": 0,
+                "y": 0
             }
         },
         "refWarehouse": {
@@ -387,8 +401,8 @@ if __name__ == "__main__":
         "origin": {
             "type": "vector",
             "value": {
-                "x": 2,
-                "y": 10
+                "x": transform_x(8.28),
+                "y": transform_y(7.06)
             }
         },
         "refRoom": {
@@ -397,8 +411,30 @@ if __name__ == "__main__":
         }
     }
 
+    # Rack for Pallet
     print("Creating Rack1...")
     entity_yaml["id"] = f"urn:ngsi-ld:{entity_type}:{1}"
+    checker(ngsi.create_entity(entity_yaml))
+    time.sleep(0.5)
+
+    # Rack for slot 1
+    entity_yaml["id"] = f"urn:ngsi-ld:{entity_type}:{2}"
+    entity_yaml["origin"]["value"]["x"] = transform_x(12.6)
+    entity_yaml["origin"]["value"]["y"] = transform_y(7)
+    checker(ngsi.create_entity(entity_yaml))
+    time.sleep(0.5)
+
+    # Rack for slot 2
+    entity_yaml["id"] = f"urn:ngsi-ld:{entity_type}:{3}"
+    entity_yaml["origin"]["value"]["x"] = transform_x(4.96)
+    entity_yaml["origin"]["value"]["y"] = transform_y(9.82)
+    checker(ngsi.create_entity(entity_yaml))
+    time.sleep(0.5)
+
+    # Rack for parcel 1
+    entity_yaml["id"] = f"urn:ngsi-ld:{entity_type}:{4}"
+    entity_yaml["origin"]["value"]["x"] = transform_x(15.6)
+    entity_yaml["origin"]["value"]["y"] = transform_y(9.7)
     checker(ngsi.create_entity(entity_yaml))
     time.sleep(0.5)
 
@@ -413,7 +449,7 @@ if __name__ == "__main__":
 
         "altitude": {
             "type": "number",
-            "value": 2.5
+            "value": 0
         },
         "surfaceNature": {
             "type": "string",
@@ -425,10 +461,12 @@ if __name__ == "__main__":
         }
     }
 
-    print("Creating Shelf1...")
-    entity_yaml["id"] = f"urn:ngsi-ld:{entity_type}:{1}"
-    checker(ngsi.create_entity(entity_yaml))
-    time.sleep(0.5)
+    for i in range(1, 5):
+        print(f"Creating Shelf{i} ...")
+        entity_yaml["id"] = f"urn:ngsi-ld:{entity_type}:{i}"
+        entity_yaml["refRack"]["value"] = f"urn:ngsi-ld:Rack:{i}"
+        checker(ngsi.create_entity(entity_yaml))
+        time.sleep(0.5)
 
     #---------------------- Slot  handling --------------------------#
     entity_type = "Slot"
@@ -444,7 +482,7 @@ if __name__ == "__main__":
         },
         "originx": {
             "type": "number",
-            "value": 4
+            "value": 0
         },
         "refShelf": {
             "type": "Relationship",
@@ -452,10 +490,12 @@ if __name__ == "__main__":
         }
     }
 
-    print("Creating Slot1...")
-    entity_yaml["id"] = f"urn:ngsi-ld:{entity_type}:{1}"
-    checker(ngsi.create_entity(entity_yaml))
-    time.sleep(0.5)
+    for i in range(1, 5):
+        print(f"Creating Slot{i} ...")
+        entity_yaml["id"] = f"urn:ngsi-ld:{entity_type}:{i}"
+        entity_yaml["refShelf"]["value"] = f"urn:ngsi-ld:Shelf:{i}"
+        checker(ngsi.create_entity(entity_yaml))
+        time.sleep(0.5)
 
     #---------------------- Pallet  handling --------------------------#
     entity_type = "Pallet"
@@ -493,8 +533,14 @@ if __name__ == "__main__":
         }
     }
 
-    print("Creating Pallet1...")
+    print("Creating Pallet 1...")
     entity_yaml["id"] = f"urn:ngsi-ld:{entity_type}:{1}"
+    checker(ngsi.create_entity(entity_yaml))
+    time.sleep(0.5)
+
+    print("Creating Pallet 2...")
+    entity_yaml["id"] = f"urn:ngsi-ld:{entity_type}:{2}"
+    entity_yaml["refSlot"]["value"] = f"urn:ngsi-ld:Slot:{2}"
     checker(ngsi.create_entity(entity_yaml))
     time.sleep(0.5)
 
@@ -548,7 +594,7 @@ if __name__ == "__main__":
         },
         "refPallet": {
             "type": "Relationship",
-            "value": "urn:ngsi-ld:Pallet:1"
+            "value": "urn:ngsi-ld:Pallet:2"
         }
     }
 
